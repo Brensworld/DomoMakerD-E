@@ -41,6 +41,35 @@ const handleSignup=(e)=>{
     return false;
 }
 
+const handlePassChange=(e)=>{
+    e.preventDefault();
+    helper.hideError();
+
+    const username=e.target.querySelector('#user').value;
+    const oldPass=e.target.querySelector('#oldPass').value;
+    const newPass=e.target.querySelector('#newPass').value;
+    const newPass2=e.target.querySelector('#newPass2').value;
+
+    if(!username || !oldPass || !newPass || !newPass2){
+        helper.handleError('All fields are required!');
+        return false;
+    }
+
+    if(newPass !== newPass2){
+        helper.handleError('New passwords do not match!');
+        return false;
+    }
+
+    if(newPass === oldPass){
+        helper.handleError('New password must be new!');
+        return false;
+    }
+
+    helper.sendPost(e.target.action,{username,oldPass,newPass,newPass2});
+
+    return false;
+}
+
 
 const LoginWindow=(props)=>{
     return(
@@ -80,10 +109,35 @@ const SignupWindow=(props)=>{
     )
 }
 
+const PassChangeWindow=(props)=>{
+    return(
+        <form id="passChangeForm"
+            name='passChangeForm'
+            onSubmit={handlePassChange}
+            action="/passChange"
+            method="POST"
+            className='mainForm'
+        >
+            <label htmlFor='username'>Username: </label>
+            <input id="user" type='text' name='username' placeholder='username'/>
+            <label htmlFor='oldPass'>Old Password: </label>
+            <input id="oldPass" type='password' name='oldPass' placeholder='old password'/>
+            <label htmlFor='newPass'>New Password: </label>
+            <input id="newPass" type='password' name='newPass' placeholder='new password'/>
+            <label htmlFor='newPass'>New Password: </label>
+            <input id="newPass2" type='password' name='newPass2' placeholder='retype new password'/>
+            <input className='formSubmit' type='submit' value="Change Password"/>
+
+        </form>
+    )
+}
+
 
 const init=()=>{
     const loginButton=document.getElementById('loginButton');
     const signupButton=document.getElementById('signupButton');
+    const passChangeButton=document.getElementById('passChangeButton');
+
 
     const root=createRoot(document.getElementById('content'));
 
@@ -98,6 +152,12 @@ const init=()=>{
         root.render(<SignupWindow/>);
         return false;
     });
+
+    passChangeButton.addEventListener('click',(e)=>{
+        e.preventDefault();
+        root.render(<PassChangeWindow/>);
+        return false;
+    })
 
     root.render(<LoginWindow/>);
 };

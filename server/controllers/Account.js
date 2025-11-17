@@ -1,4 +1,5 @@
 const models = require('../models');
+const AccountModel = require('../models/Account');
 
 const { Account } = models;
 
@@ -54,9 +55,48 @@ const signup = async (req, res) => {
   }
 };
 
+const passChange = async (req, res) => {
+  const username = `${req.body.username}`;
+  const oldPass = `${req.body.oldPass}`;
+  const newPass = `${req.body.newPass}`;
+  const newPass2 = `${req.body.newPass2}`;
+
+  if (!username || !oldPass || !newPass || !newPass2) {
+    return res.status(400).json({ error: 'All fields are required!' });
+  }
+
+  if (newPass !== newPass2) {
+    return res.status(400).json({ error: 'New passwords do not match!' });
+  }
+
+  if (newPass === oldPass) {
+    return res.status(400).json({ error: 'New password must be new!' });
+  }
+
+  return Account.authenticate(username, oldPass, async (err, account) => {
+    if (err || !account) {
+      return res.status(401).json({ error: 'Wrong username or password!' });
+    }
+
+    try {
+      const hash = await Account.generateHash(newPass);
+      await AccountModel.findOneAndUpdate(
+        { username },
+        { $set: { password: hash } },
+        { new: true },
+      );
+      return res.json({ redirect: '/login' });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ error: 'An error occured!' });
+    }
+  });
+};
+
 module.exports = {
   loginPage,
   login,
   logout,
   signup,
+  passChange,
 };
